@@ -1,0 +1,108 @@
+import random
+
+
+class Asset():
+    def __init__(self, price, tickerSymbol):
+        self.price = price
+        self.tickerSymbol = tickerSymbol
+
+class Stock(Asset):
+    pass
+
+class MutualFund(Asset):
+    def __init__(self, tickerSymbol):
+        super(MutualFund, self).__init__(1, tickerSymbol)
+
+#class Bonds(Asset):
+#    pass
+
+class Portfolio():
+    def __init__(self, cash = 0, assets = {}):
+        self.cash = cash
+        self.assets = assets
+        self.hist = "Portfolio is created. \n"
+    
+    def __str__(self):
+        portfolio = "\nCash: $" + str(self.cash) + "\n"
+        portfolio += "Stocks: "
+        for tickerSymbol, asset in self.assets.items():
+            if asset[0] == "Stock":
+                portfolio += "\n" + str(asset[1]) + " " + tickerSymbol
+        portfolio += "\n"
+        portfolio += "MutualFunds: "
+        for tickerSymbol, asset in self.assets.items():
+            if asset[0] == "MutualFund":
+                portfolio += "\n" + str(asset[1]) + " " + tickerSymbol
+        portfolio += "\n"
+        return portfolio
+    
+    def __repr__(self):
+        return self.__str__()
+
+    def addCash(self, cash):
+        self.cash += cash
+        self.hist += "You have successfully added " + str(cash) + "$ to your portfolio. Current balance is " + str(self.cash) + "$. \n"
+    
+    def withdrawCash(self, cash):
+        if self.cash < cash :
+            self.hist += "[Withdraw " + str(cash) + "$] Transaction could not be proceeded: Insufficient Funds. \n"
+        else:
+            self.cash -= cash
+            self.hist += "You have successfully withdrawed " + str(cash) + "$. \n" 
+
+    def buyAsset(self, shares, asset, assetType):
+        if self.cash < shares*asset.price :
+            self.hist += "[Purchase " + str(shares) + "shares of " + asset.tickerSymbol + "] Transaction could not be proceeded: Insufficient Funds.\n"
+        else:
+            self.cash -= shares*asset.price
+            self.assets[asset.tickerSymbol] = [assetType, shares, asset.price]
+            self.hist += "You have successfully purchased " + str(shares) + " shares of " + asset.tickerSymbol + " [" + assetType + "]. \n" 
+    
+    def buyStock(self, shares, stock):
+        self.buyAsset(shares, stock, "Stock")
+
+    def buyMutualFund(self, shares, mutualFund):
+        self.buyAsset(shares, mutualFund, "MutualFund")
+    
+#    def buyBond(self, shares, bond):
+#        self.buyBond(shares, bond, "Bond")
+
+    def sellAsset(self, tickerSymbol, shares, price):
+        if(tickerSymbol in self.assets.keys() and self.assets[tickerSymbol][1] >= shares):
+            self.cash += price*shares
+            self.assets[tickerSymbol][1] -= shares
+            self.hist += "You have successfully sold " + str(shares) + " shares of " + tickerSymbol + " [" + self.assets[tickerSymbol][0] + "]. \n" 
+            if(self.assets[tickerSymbol][1] == 0):
+                self.assets.pop(tickerSymbol)
+        else:
+            self.hist += "[Sell " + str(shares) + " shares of " + tickerSymbol + "] Transaction could not be proceeded: Insufficient Funds.\n"
+
+    def sellStock(self, tickerSymbol, shares):
+        X = self.assets[tickerSymbol][2]
+        price = random.uniform(0.5*X, 1.5*X)
+        self.sellAsset(tickerSymbol, shares, price)
+
+    def sellMutualFund(self, tickerSymbol, shares):
+        price = random.uniform(0.9,1.2)
+        self.sellAsset(tickerSymbol, shares, price)
+    
+#    def sellBond(self, tickerSymbol, shares)
+#       price = ...
+#       self.sellAsset(tickerSymbol, shares, price)
+
+    def history(self):
+        print(self.hist) 
+    
+portfolio = Portfolio()
+portfolio.addCash(300.50)
+s = Stock(20, "HFH")
+portfolio.buyStock(5, s)
+mf1 = MutualFund("BRT")
+mf2 = MutualFund("GHT")
+portfolio.buyMutualFund(10.3, mf1)
+portfolio.buyMutualFund(2, mf2)
+print(portfolio)
+portfolio.sellMutualFund("BRT", 3)
+portfolio.sellStock("HFH", 1)
+portfolio.withdrawCash(50)
+portfolio.history()
